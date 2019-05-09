@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useReducer } from 'react'
-import axios from 'axios' 
+import UseDataApi from './UseDataApi'
 import './App.css'
 
 function App() {
   const [query, setQuery] = useState('redux') 
-  const { data, isLoading, isError, doFetch } = useDataApi(
+  const { data, isLoading, isError, doFetch } = UseDataApi(
     'https://hn.algolia.com/api/v1/search?query=redux',
     { hits: [] }
   )
@@ -39,71 +39,6 @@ function App() {
       }
     </div>
   );
-}
-
-const dataFetchReducer = (state, action) => {
-  switch (action.type) {
-    case 'FETCH_INIT':
-      return { 
-        ...state,
-        isLoading: true,
-        isError: false  
-      }
-    case 'FETCH_SUCCESS':
-      return { 
-        ...state,
-        isLoading: false,
-        isError: false,
-        data: action.payload 
-      }
-    case 'FETCH_FAILURE':
-      return { 
-        ...state,
-        isLoading: false,
-        isError: true  
-      }
-    default: 
-      throw new Error() 
-  }
-}
-
-const useDataApi = (initialUrl, initialData) => {
-  const [url, setUrl] = useState(initialUrl) 
-  const [state, dispatch] = useReducer(dataFetchReducer, {
-    isLoading: false,
-    isError: false,
-    data: initialData
-  })
-
-  useEffect(() => {
-    let didCancel = false 
-
-    async function fetchData() {
-      dispatch({ type: 'FETCH_INIT' })
-
-      try {
-        const result = await axios(url)
-
-        if(!didCancel){
-          dispatch({ type: 'FETCH_SUCCESS', payload: result.data })
-        }
-      } catch(error) {
-        if(!didCancel) {
-          dispatch({ type: 'FETCH_FAILURE' })
-        }
-      }
-    }
-
-    fetchData() 
-
-    return () => {
-      didCancel = true 
-    }
-  }, [url])
-
-  const doFetch = url => setUrl(url)
-
-  return { ...state, doFetch }
 }
 
 export default App;
